@@ -21,10 +21,10 @@ from toolz import partition_all
 
 
 
-src_store = zarr.DirectoryStore('/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1_postprocessed.zarr')
+src_store = zarr.DirectoryStore('')
 src = zarr.open(store=src_store, path='/mito_membrane_postprocessed', mode = 'r')
 
-dest_store = zarr.NestedDirectoryStore('/nrs/cellmap/zubovy/liver_zon_1_predictions/mito_membrane_postprocessed_new.zarr')
+dest_store = zarr.NestedDirectoryStore('')
 dest_root = zarr.open_group(store=dest_store, mode= 'a')
 
 def save_chunk(
