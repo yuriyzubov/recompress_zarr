@@ -21,10 +21,10 @@ from toolz import partition_all
 
 
 
-src_store = zarr.NestedDirectoryStore('')
-src_root = zarr.open_group(store=src_store, mode = 'r')
+src_store = zarr.DirectoryStore('/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1_postprocessed.zarr')
+src = zarr.open(store=src_store, path='/mito_membrane_postprocessed', mode = 'r')
 
-dest_store = zarr.NestedDirectoryStore('')
+dest_store = zarr.NestedDirectoryStore('/nrs/cellmap/zubovy/liver_zon_1_predictions/mito_membrane_postprocessed_new.zarr')
 dest_root = zarr.open_group(store=dest_store, mode= 'a')
 
 def save_chunk(
@@ -39,7 +39,7 @@ def save_chunk(
         dest[out_slices] = source_data
     return 1
 
-def copy_arrays(src_root: zarr.Group,
+def copy_arrays(z_src: zarr.Group,
                 dest_root: zarr.Group,
                 client: Client,
                 num_workers: int,
@@ -48,7 +48,10 @@ def copy_arrays(src_root: zarr.Group,
     
     # store original array in a new .zarr file as an arr_name
     client.cluster.scale(num_workers)
-    z_arrays = [key_val_arr[1] for key_val_arr in (src_root.arrays())]
+    if isinstance(z_src, zarr.core.Array):
+        z_arrays = [z_src]
+    else:
+        z_arrays = [key_val_arr[1] for key_val_arr in (z_src.arrays())]
     for src_arr in z_arrays:
         
 
@@ -81,7 +84,7 @@ def copy_arrays(src_root: zarr.Group,
 
 if __name__ == '__main__':
     # store_multiscale = cw.cluster_compute("local")(create_multiscale)
-    # store_multiscale(src_root,(64, 64, 64),  Zstd(level=6))
+    # store_multiscale(z_src,(64, 64, 64),  Zstd(level=6))
     num_cores = 1
     cluster = LSFCluster(
         cores=num_cores,
@@ -99,4 +102,4 @@ if __name__ == '__main__':
         text_file.write(str(client.dashboard_link))
     print(client.dashboard_link)
 
-    copy_arrays(src_root=src_root, dest_root=dest_root, client=client, num_workers=500, comp=Zstd(level=6))
+    copy_arrays(z_src=src, dest_root=dest_root, client=client, num_workers=500, comp=Zstd(level=6))
