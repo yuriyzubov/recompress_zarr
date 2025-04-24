@@ -93,7 +93,8 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
 @click.option('--cluster_type', '-ct', default='' ,type=click.STRING, help="Which instance of dask client to use. Local client - 'local', cluster 'lsf'")
 @click.option('--out_dtype', '-odt', default='', type=click.STRING, help="Output array data type")
 @click.option('--compressor', '-c', default='', type=click.STRING, help="Which compression algorithm to use. Options: gzip, zstd" )
-def cli(src, dest, workers, cluster_type, out_dtype, compressor):
+@click.option('--invert', '-i', default=False, type=click.BOOL, help = 'invert values of the array when writing into zarr. Default: false')
+def cli(src, dest, workers, cluster_type, out_dtype, compressor, invert):
     
     if cluster_type == '':
         print('Did not specify which instance of the dask client to use!')
@@ -120,8 +121,8 @@ def cli(src, dest, workers, cluster_type, out_dtype, compressor):
     
     if compressor == 'zstd':
         comp = Zstd(level=6)
-    # if compressor == 'gzip':
-    #     comp = Gzip(level=6)
+    if compressor == 'gzip':
+        comp = Gzip(level=6)
 
 
     src_store = zarr.DirectoryStore(src)
