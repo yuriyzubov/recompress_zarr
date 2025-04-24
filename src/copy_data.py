@@ -13,8 +13,8 @@ def copy_arrays(zarr_arrays, zarrdest, max_dask_chunk_num, comp):
     new_store = zarr.NestedDirectoryStore(zarrdest)
     for item in zarr_arrays:
         old_arr = item[1]
-        darray = da.from_array(old_arr, chunks = optimal_dask_chunksize(old_arr, max_dask_chunk_num))
-        dataset = zarr.open(store = new_store, path= old_arr.path, mode='w', shape=old_arr.shape, chunks=old_arr.chunks, dtype=old_arr.dtype, compressor=comp)
+        darray = da.transpose(da.from_array(old_arr, chunks = optimal_dask_chunksize(old_arr, max_dask_chunk_num)))
+        dataset = zarr.create(store = new_store, path= old_arr.path+"_transposed", mode='w', shape=old_arr.shape[::-1], chunks=old_arr.chunks[::-1], dtype=old_arr.dtype, compressor=comp)
         
         start_time = time.time()
 
