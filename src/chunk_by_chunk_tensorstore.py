@@ -35,16 +35,6 @@ def open_ds_tensorstore(dataset_path: str,  driver : str,  mode="r"):
         dataset_future = ts.open(spec, read=False, write=True)
 
     return dataset_future.result()
-
-def zarr_to_tsarr(zarray: zarr.Array) -> ts.TensorStore:
-    ts_arr =  ts.open({
-    'driver': 'zarr',
-        'kvstore': {
-            'driver': 'file',
-            'path': os.path.join(zarray.store.path, zarray.path),
-        },
-        })
-    return ts_arr.result()
     
 def save_chunk_ts(
         source: ts.TensorStore, 
