@@ -8,14 +8,13 @@ from dask.distributed import LocalCluster
 
 import dask.array as da
 import zarr
-#import cluster_wrapper as cw
 import time
 from numcodecs.abc import Codec
 import numpy as np
 from dask.array.core import slices_from_chunks, normalize_chunks
 from dask.distributed import Client
 from numcodecs import Zstd
-#from numcodecs.gzip import Gzip
+from numcodecs.gzip import Gzip
 from toolz import partition_all
 import sys
 

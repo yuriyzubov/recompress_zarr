@@ -8,7 +8,6 @@ from dask.distributed import LocalCluster
 
 import dask.array as da
 import zarr
-#import cluster_wrapper as cw
 import time
 from numcodecs.abc import Codec
 import numpy as np
@@ -69,18 +68,15 @@ def copy_arrays(ts_src: ts.TensorStore,
         dest_dtype = ts_src.dtype.name
         
     start_time = time.time()
-    dest_zarr = dest_root.require_dataset(
+    dest_arr = dest_root.require_dataset(
         os.path.basename(os.path.normpath(ts_src.kvstore.path)), 
         shape=ts_src.shape, 
         chunks=tuple(ts_src.chunk_layout.to_json()['read_chunk']['shape']), 
         dtype=dest_dtype, 
         compressor=dest_comp, 
         dimension_separator='/')
-    
-    #dest_arr = zarr_to_tsarr(dest_zarr)
-    dest_arr = dest_zarr
-    
-    out_slices = slices_from_chunks(normalize_chunks(dest_zarr.chunks, shape=dest_arr.shape))
+        
+    out_slices = slices_from_chunks(normalize_chunks(dest_arr.chunks, shape=dest_arr.shape))
     # break the slices up into batches, to make things easier for the dask scheduler
     out_slices_partitioned = tuple(partition_all(100000, out_slices))
     for idx, part in enumerate(out_slices_partitioned):
@@ -91,10 +87,6 @@ def copy_arrays(ts_src: ts.TensorStore,
         # wait for all the futures to complete
         result = wait(fut)
         print(f'Completed {len(part)} tasks in {time.time() - start}s')
-
-# def add_multiscale_metadata(dest_root):
-#     z_attrs['multiscales'][0]['name'] = dest_root.name
-#     return z_attrs
 
 @click.command()
 @click.option('--src', type=click.STRING, help='Input tensorstore array path.')
