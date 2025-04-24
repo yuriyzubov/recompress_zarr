@@ -21,7 +21,6 @@ from toolz import partition_all
 import tensorstore as ts
 import click
 
-# Credit: David Ackerman
 def open_ds_tensorstore(dataset_path: str,  driver : str,  mode="r"):
     spec = {
         "driver": driver,
@@ -47,10 +46,6 @@ def zarr_to_tsarr(zarray: zarr.Array) -> ts.TensorStore:
         })
     return ts_arr.result()
     
-        
-    
-   
-
 def save_chunk_ts(
         source: ts.TensorStore, 
         dest: zarr.Array,#ts.TensorStore, 
@@ -112,14 +107,14 @@ def copy_arrays(ts_src: ts.TensorStore,
 #     return z_attrs
 
 @click.command()
-@click.option('--src', type=click.STRING)
-@click.option('--src_driver', default="", type=click.STRING)
-@click.option('--dest', type=click.STRING)
-@click.option('--dest_compressor', '-dc', default="", type=click.STRING)
-@click.option('--scheduler', '-s', default='lsf' ,type=click.STRING)
-@click.option('--num_workers', '-w', default = 20, type=click.INT)
-@click.option('--dest_dtype', '-ddt', default = '', type=click.STRING)
-@click.option('invert', '-i', default=False, type=click.BOOL)
+@click.option('--src', type=click.STRING, help='Input tensorstore array path.')
+@click.option('--src_driver', default="", type=click.STRING, 'tensor store driver, (zarr, neuroglancer_precomputed, n5)' )
+@click.option('--dest', type=click.STRING,  help='Output .zarr file location.')
+@click.option('--dest_compressor', '-dc', default="", type=click.STRING, )
+@click.option('--scheduler', '-s', default='lsf' ,type=click.STRING, help = 'dask scheduler. "lsf"(LSF Cluster) or "local" (Single machine)')
+@click.option('--num_workers', '-w', default = 20, type=click.INT, help='Number of dask workers. Default = 20.')
+@click.option('--dest_dtype', '-ddt', default = '', type=click.STRING, 'output zarr array dtype. Input array dtype is used as a default type')
+@click.option('--invert', '-i', default=False, type=click.BOOL, help = 'invert values of the array when writing into zarr. Default: false')
 def cli(src, src_driver, dest, dest_compressor, scheduler, num_workers, dest_dtype, invert):
     if dest_compressor=='zstd':
         comp = Zstd(level=6)
@@ -148,9 +143,11 @@ def cli(src, src_driver, dest, dest_compressor, scheduler, num_workers, dest_dty
     print(client.dashboard_link)
 
 
-    
-    src_arr = open_ds_tensorstore(src, driver=src_driver, mode='r')[ts.d['channel'][0]]
-
+    if src_driver == 'neuroglancer_precomputed': 
+        src_arr = open_ds_tensorstore(src, driver=src_driver, mode='r')[ts.d['channel'][0]]
+    else: 
+        src_arr = open_ds_tensorstore(src, driver=src_driver, mode='r')
+        
     dest_store = zarr.NestedDirectoryStore(dest)
     dest_root = zarr.open_group(store=dest_store, mode= 'a')
     
@@ -158,6 +155,5 @@ def cli(src, src_driver, dest, dest_compressor, scheduler, num_workers, dest_dty
     
 
 if __name__ == '__main__':
-    # store_multiscale = cw.cluster_compute("local")(create_multiscale)
-    # store_multiscale(z_src,(64, 64, 64),  Zstd(level=6))
+    
     cli()
