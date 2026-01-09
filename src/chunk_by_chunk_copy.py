@@ -73,7 +73,7 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
             dtype=out_dtype, 
             compressor=comp, 
             dimension_separator='/',
-            fill_value=0)
+            fill_value=np.array(0, dtype=out_dtype))
             # exact=True)
 
         out_slices = slices_from_chunks(normalize_chunks(dest_arr.chunks, shape=dest_arr.shape))
@@ -98,8 +98,6 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
 @click.option('--compressor', '-c', default='', type=click.STRING, help="Which compression algorithm to use. Options: gzip, zstd" )
 @click.option('--invert', '-i', default=False, type=click.BOOL, help = 'invert values of the array when writing into zarr. Default: false')
 @click.option('--out_chunksize', nargs=3, default=None, type=click.INT, help= 'specify output chunksize')
-@click.option('--project_name', '-p' , default=None, type=click.STRING, help= 'specify project name')
-
 def cli(src,
         dest,
         workers,
@@ -107,8 +105,7 @@ def cli(src,
         out_dtype,
         compressor,
         invert,
-        out_chunksize,
-        project_name):
+        out_chunksize):
     
     if cluster_type == '':
         print('Did not specify which instance of the dask client to use!')
@@ -154,9 +151,6 @@ def cli(src,
                 invert=False,
                 out_dtype=out_dtype,
                 out_chunksize=out_chunksize)
-
-
-
 
 if __name__ == '__main__':
     cli()

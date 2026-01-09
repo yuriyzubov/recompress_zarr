@@ -1,28 +1,30 @@
-[tool.poetry]
-name = "n5-to-zarr"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recompress_zarr"
 version = "0.1.0"
 description = ""
-authors = ["Yurii Zubov <zubov452@gmail.com>"]
+authors = [
+    {name = "Yurii Zubov", email = "zubov452@gmail.com"}
+]
 readme = "README.md"
-packages = [{include = "src"}]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy==2.2.4",
+    "dask[distributed]>=2023.8.1",
+    "zarr==2.18.7",
+    "click>=8.1.6",
+    "pydantic-zarr>=0.4.0",
+    "numcodecs>=0.15.1",
+    "dask-jobqueue==0.9.0",
+    "natsort>=8.4.0",
+    "bokeh>=3.4.0",
+    "tensorstore>=0.1.64",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-numpy = "^1.25.2"
-dask = {extras = ["distributed"], version = "^2023.8.1"}
-zarr = "^2.16.0"
-click = "^8.1.6"
-pydantic-zarr = "^0.4.0"
-numcodecs = "^0.11.0"
-dask-jobqueue = "^0.8.2"
-natsort = "^8.4.0"
-bokeh = "^3.4.0"
-tensorstore = "^0.1.64"
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+]

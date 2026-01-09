@@ -90,12 +90,12 @@ def copy_arrays(ts_src: ts.TensorStore,
 
 @click.command()
 @click.option('--src', type=click.STRING, help='Input tensorstore array path.')
-@click.option('--src_driver', default="", type=click.STRING, 'tensor store driver, (zarr, neuroglancer_precomputed, n5)' )
+@click.option('--src_driver', default="", type=click.STRING, help = 'tensor store driver, (zarr, neuroglancer_precomputed, n5)' )
 @click.option('--dest', type=click.STRING,  help='Output .zarr file location.')
 @click.option('--dest_compressor', '-dc', default="", type=click.STRING, )
 @click.option('--scheduler', '-s', default='lsf' ,type=click.STRING, help = 'dask scheduler. "lsf"(LSF Cluster) or "local" (Single machine)')
 @click.option('--num_workers', '-w', default = 20, type=click.INT, help='Number of dask workers. Default = 20.')
-@click.option('--dest_dtype', '-ddt', default = '', type=click.STRING, 'output zarr array dtype. Input array dtype is used as a default type')
+@click.option('--dest_dtype', '-ddt', default = '', type=click.STRING, help= 'output zarr array dtype. Input array dtype is used as a default type')
 @click.option('--invert', '-i', default=False, type=click.BOOL, help = 'invert values of the array when writing into zarr. Default: false')
 def cli(src, src_driver, dest, dest_compressor, scheduler, num_workers, dest_dtype, invert):
     if dest_compressor=='zstd':

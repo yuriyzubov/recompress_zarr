@@ -1,4 +1,4 @@
-This script could be used for copying zarr arrays to .zarr format with OME-NGFF multiscales metadata structure.
+This script could be used for recompressing, fast copy, and store change of zarr arrays. 
 #### How to run
 1. open command line terminal
 2. install poetry tool for dependency management and packaging: https://pypi.org/project/poetry/
