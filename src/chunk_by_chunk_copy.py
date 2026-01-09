@@ -14,7 +14,7 @@ import numpy as np
 from dask.array.core import slices_from_chunks, normalize_chunks
 from dask.distributed import Client
 from numcodecs import Zstd
-from numcodecs.gzip import Gzip
+from numcodecs.gzip import GZip
 from toolz import partition_all
 import sys
 
@@ -43,7 +43,8 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
                 num_workers: int,
                 comp: Codec,
                 invert: bool,
-                out_dtype: str):
+                out_dtype: str,
+                out_chunksize : list[int]):
     
     
     # store original array in a new .zarr file as an arr_name
@@ -60,16 +61,19 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
             
         if comp==None:
             comp = src_arr.compressor
+            
+        if out_chunksize==None:
+            out_chunksize=src_arr.chunks
 
         start_time = time.time()
         dest_arr = dest_root.require_dataset(
             src_arr.name, 
             shape=src_arr.shape, 
-            chunks=src_arr.chunks, 
+            chunks=out_chunksize, 
             dtype=out_dtype, 
             compressor=comp, 
-            dimension_separator='/')#,
-            # fill_value=0,
+            dimension_separator='/',
+            fill_value=0)
             # exact=True)
 
         out_slices = slices_from_chunks(normalize_chunks(dest_arr.chunks, shape=dest_arr.shape))
@@ -93,7 +97,18 @@ def copy_arrays(z_src: zarr.Group | zarr.Array,
 @click.option('--out_dtype', '-odt', default='', type=click.STRING, help="Output array data type")
 @click.option('--compressor', '-c', default='', type=click.STRING, help="Which compression algorithm to use. Options: gzip, zstd" )
 @click.option('--invert', '-i', default=False, type=click.BOOL, help = 'invert values of the array when writing into zarr. Default: false')
-def cli(src, dest, workers, cluster_type, out_dtype, compressor, invert):
+@click.option('--out_chunksize', nargs=3, default=None, type=click.INT, help= 'specify output chunksize')
+@click.option('--project_name', '-p' , default=None, type=click.STRING, help= 'specify project name')
+
+def cli(src,
+        dest,
+        workers,
+        cluster_type,
+        out_dtype,
+        compressor,
+        invert,
+        out_chunksize,
+        project_name):
     
     if cluster_type == '':
         print('Did not specify which instance of the dask client to use!')
@@ -107,7 +122,8 @@ def cli(src, dest, workers, cluster_type, out_dtype, compressor, invert):
             ncpus=num_cores,
             mem=15 * num_cores,
             walltime="48:00",
-            local_directory = "/scratch/$USER/"
+            local_directory = "/scratch/$USER/",
+            job_extra_directives = [f'-P {project_name}']
             )
     
     elif cluster_type == 'local':
@@ -121,7 +137,7 @@ def cli(src, dest, workers, cluster_type, out_dtype, compressor, invert):
     if compressor == 'zstd':
         comp = Zstd(level=6)
     if compressor == 'gzip':
-        comp = Gzip(level=6)
+        comp = GZip(level=6)
 
 
     src_store = zarr.DirectoryStore(src)
@@ -130,7 +146,14 @@ def cli(src, dest, workers, cluster_type, out_dtype, compressor, invert):
     dest_store = zarr.NestedDirectoryStore(dest)
     dest_root = zarr.open_group(store=dest_store, mode= 'a')
     
-    copy_arrays(z_src=zarr_src, dest_root=dest_root, client=client, num_workers=workers, comp=comp, invert=False, out_dtype=out_dtype)
+    copy_arrays(z_src=zarr_src,
+                dest_root=dest_root,
+                client=client,
+                num_workers=workers,
+                comp=comp,
+                invert=False,
+                out_dtype=out_dtype,
+                out_chunksize=out_chunksize)
 
 
 
